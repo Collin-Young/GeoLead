@@ -7,3 +7,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.5
+      - key: LANDID_USERNAME
+        value: aaron@fulleroak.com
+      - key: LANDID_PASSWORD
+        value: cU2Vj1GNGEklgdSN
