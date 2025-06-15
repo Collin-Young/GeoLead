@@ -198,9 +198,22 @@ def main(input_path, output_path):
         title  = "{} - {}".format(ref, owner)
         print("[{}/{}] Starting browser for APN={}, County={}".format(idx+1, total, apn, county))
 
-        # Launch and login
-        opts = Options(); opts.add_argument("--start-maximized")
-        driver = webdriver.Chrome(options=opts)
+        # Launch and login with cloud-friendly options
+        opts = Options()
+        opts.add_argument("--headless")  # Run in headless mode for cloud
+        opts.add_argument("--no-sandbox")
+        opts.add_argument("--disable-dev-shm-usage")
+        opts.add_argument("--disable-gpu")
+        opts.add_argument("--window-size=1920,1080")
+        
+        try:
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=opts)
+        except:
+            # Fallback for local development
+            driver = webdriver.Chrome(options=opts)
         try:
             login(driver)
             create_map_for_parcel(driver, title, state)

@@ -121,7 +121,7 @@ def generate_landid():
         ]
         
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
             
             # Check if the process succeeded
             if result.returncode != 0:
