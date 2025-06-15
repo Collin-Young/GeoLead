@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOP Offer Database Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #2980b9;
+        }
+
+        .search-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-count {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #229954;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .result-item {
+            border-bottom: 1px solid #ecf0f1;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .result-checkbox {
+            margin-left: 10px;
+            transform: scale(1.2);
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-size: 1em;
+        }
+
+        .price {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+
+        .expanded-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+            
+            .result-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FOP Offer Database Search</h1>
+            <p>Search through {{ total_records }} property offers</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" 
+                       placeholder="Search by reference, APN, county, owner name, address..." 
+                       autocomplete="off">
+                <button id="searchBtn" class="search-btn">Search</button>
+            </div>
+            
+            <div class="controls" id="controls" style="display: none;">
+                <div class="result-count" id="resultCount"></div>
+                <div class="action-buttons">
+                    <button id="selectAllBtn" class="btn btn-secondary">Select All</button>
+                    <button id="clearSelectionBtn" class="btn btn-secondary">Clear Selection</button>
+                    <button id="exportBtn" class="btn btn-primary" disabled>Export Selected</button>
+                    <button id="generateLandIdBtn" class="btn btn-primary" disabled>Generate Land.id Links</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Searching database...</p>
+        </div>
+
+        <div id="resultsContainer" class="results-container" style="display: none;"></div>
+    </div>
+
+    <script>
+        let searchResults = [];
+        let selectedRecords = [];
+
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const controls = document.getElementById('controls');
+        const resultCount = document.getElementById('resultCount');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const alertContainer = document.getElementById('alertContainer');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const generateLandIdBtn = document.getElementById('generateLandIdBtn');
+
+        // Event listeners
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        searchBtn.addEventListener('click', performSearch);
+        selectAllBtn.addEventListener('click', selectAll);
+        clearSelectionBtn.addEventListener('click', clearSelection);
+        exportBtn.addEventListener('click', exportSelected);
+        generateLandIdBtn.addEventListener('click', generateLandIdLinks);
+
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                showAlert('Please enter a search term', 'error');
+                return;
+            }
+
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            controls.style.display = 'none';
+            searchBtn.disabled = true;
+
+            fetch(`/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    searchResults = data.results;
+                    displayResults(data);
+                    loadingContainer.style.display = 'none';
+                    searchBtn.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showAlert('Search failed. Please try again.', 'error');
+                    loadingContainer.style.display = 'none';
+                    searchBtn.disabled = false;
+                });
+        }
+
+        function displayResults(data) {
+            if (data.results.length === 0) {
+                resultsContainer.innerHTML = '<div class="loading">No results found for your search.</div>';
+                resultsContainer.style.display = 'block';
+                return;
+            }
+
+            resultCount.textContent = `Found ${data.count} result(s) for "${data.query}"`;
+            controls.style.display = 'flex';
+
+            const html = data.results.map((result, index) => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <div class="result-title">${result.Reference || 'N/A'}</div>
+                        <input type="checkbox" class="result-checkbox" data-index="${index}">
+                    </div>
+                    <div class="result-details">
+                        <div class="detail-item">
+                            <div class="detail-label">APN</div>
+                            <div class="detail-value">${result.APN || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">County</div>
+                            <div class="detail-value">${result.County_Name || 'N/A'}, ${result.State || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Owner</div>
+                            <div class="detail-value">${result.Owner_Mailing_Name || result.Owner_First_Name || 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Offer Price</div>
+                            <div class="detail-value price">$${result.Offer_Price ? result.Offer_Price.toLocaleString() : 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Lot Acreage</div>
+                            <div class="detail-value">${result.Lot_Acreage || 'N/A'} acres</div>
+                        </div>
+                    </div>
+                    <button class="expand-btn" onclick="toggleExpanded(${index})">Click to expand ▼</button>
+                    <div class="expanded-details" id="expanded-${index}">
+                        <div class="result-details">
+                            <div class="detail-item">
+                                <div class="detail-label">Mail Address</div>
+                                <div class="detail-value">${result.Mail_Address || 'N/A'}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Mail City</div>
+                                <div class="detail-value">${result.Mail_City || 'N/A'}, ${result.Mail_State || 'N/A'} ${result.Mail_Zip_Code || ''}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Legal Description</div>
+                                <div class="detail-value">${result.Legal_Description || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = html;
+            resultsContainer.style.display = 'block';
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.result-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelection);
+            });
+        }
+
+        function toggleExpanded(index) {
+            const expandedDiv = document.getElementById(`expanded-${index}`);
+            const button = expandedDiv.previousElementSibling;
+            
+            if (expandedDiv.style.display === 'none' || !expandedDiv.style.display) {
+                expandedDiv.style.display = 'block';
+                button.textContent = 'Click to collapse ▲';
+            } else {
+                expandedDiv.style.display = 'none';
+                button.textContent = 'Click to expand ▼';
+            }
+        }
+
+        function updateSelection() {
+            selectedRecords = [];
+            document.querySelectorAll('.result-checkbox:checked').forEach(checkbox => {
+                const index = parseInt(checkbox.dataset.index);
+                selectedRecords.push(searchResults[index]);
+            });
+
+            exportBtn.disabled = selectedRecords.length === 0;
+            generateLandIdBtn.disabled = selectedRecords.length === 0;
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.result-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            updateSelection();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.result-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            updateSelection();
+        }
+
+        function exportSelected() {
+            if (selectedRecords.length === 0) {
+                showAlert('Please select records to export', 'error');
+                return;
+            }
+
+            fetch('/export_csv', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ records: selectedRecords })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'fop_offers_export.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showAlert('Export completed successfully', 'success');
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                showAlert('Export failed. Please try again.', 'error');
+            });
+        }
+
+        function generateLandIdLinks() {
+            if (selectedRecords.length === 0) {
+                showAlert('Please select records to generate Land.id links', 'error');
+                return;
+            }
+
+            generateLandIdBtn.disabled = true;
+            generateLandIdBtn.textContent = 'Generating...';
+
+            fetch('/generate_landid', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ records: selectedRecords })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showAlert(data.error, 'error');
+                } else if (data.status === 'completed' && data.links) {
+                    showAlert(data.message, 'success');
+                    displayLandIdLinks(data.links, data.total_processed, data.links_generated);
+                } else {
+                    showAlert(data.message, 'info');
+                }
+                generateLandIdBtn.disabled = false;
+                generateLandIdBtn.textContent = 'Generate Land.id Links';
+            })
+            .catch(error => {
+                console.error('Land.id generation error:', error);
+                showAlert('Land.id generation failed. Please try again.', 'error');
+                generateLandIdBtn.disabled = false;
+                generateLandIdBtn.textContent = 'Generate Land.id Links';
+            });
+        }
+
+        function displayLandIdLinks(links, totalProcessed, linksGenerated) {
+            // Create a modal or popup to display the links
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                max-width: 80%;
+                max-height: 80%;
+                overflow-y: auto;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            `;
+
+            let linksHtml = `
+                <h2>Land.id Links Generated</h2>
+                <p><strong>Total Processed:</strong> ${totalProcessed} | <strong>Links Generated:</strong> ${linksGenerated}</p>
+                <hr style="margin: 20px 0;">
+            `;
+
+            if (links.length === 0) {
+                linksHtml += '<p>No Land.id links were generated. This might be due to errors in the automation process.</p>';
+            } else {
+                linksHtml += '<div style="margin-bottom: 20px;">';
+                links.forEach((linkData, index) => {
+                    linksHtml += `
+                        <div style="margin-bottom: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                            <strong>${index + 1}. ${linkData.reference}</strong><br>
+                            <small>APN: ${linkData.apn}</small><br>
+                            <a href="${linkData.link}" target="_blank" style="color: #3498db; text-decoration: none;">
+                                ${linkData.link}
+                            </a>
+                            <button onclick="copyToClipboard('${linkData.link}')" style="margin-left: 10px; padding: 5px 10px; background: #27ae60; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                Copy
+                            </button>
+                        </div>
+                    `;
+                });
+                linksHtml += '</div>';
+            }
+
+            linksHtml += `
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="this.closest('.modal').remove()" style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
+
+            modalContent.innerHTML = linksHtml;
+            modal.appendChild(modalContent);
+            modal.className = 'modal';
+            document.body.appendChild(modal);
+
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                showAlert('Link copied to clipboard!', 'success');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                showAlert('Failed to copy link', 'error');
+            });
+        }
+    </script>
+</body>
+</html>
