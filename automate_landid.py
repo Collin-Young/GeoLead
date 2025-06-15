@@ -204,7 +204,16 @@ def main(input_path, output_path):
         opts.add_argument("--no-sandbox")
         opts.add_argument("--disable-dev-shm-usage")
         opts.add_argument("--disable-gpu")
+        opts.add_argument("--disable-extensions")
+        opts.add_argument("--disable-background-timer-throttling")
+        opts.add_argument("--disable-backgrounding-occluded-windows")
+        opts.add_argument("--disable-renderer-backgrounding")
+        opts.add_argument("--disable-features=TranslateUI")
+        opts.add_argument("--disable-ipc-flooding-protection")
         opts.add_argument("--window-size=1920,1080")
+        opts.add_argument("--remote-debugging-port=9222")
+        opts.add_argument("--user-data-dir=/tmp/chrome-user-data")
+        opts.add_argument("--single-process")
         
         try:
             from webdriver_manager.chrome import ChromeDriverManager
